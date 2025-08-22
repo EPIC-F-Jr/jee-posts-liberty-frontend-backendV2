@@ -1,0 +1,8 @@
+ejb\local\UserServiceLocal.class
+ejb\UserService.class
+ejb\LikeService.class
+ejb\local\LikeServiceLocal.class
+ejb\local\PostServiceLocal.class
+ejb\PostService.class
+ejb\local\CommentServiceLocal.class
+ejb\CommentService.class

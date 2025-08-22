@@ -1,0 +1,4 @@
+model\Comment.class
+model\User.class
+model\Like.class
+model\Post.class

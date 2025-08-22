@@ -1,0 +1,6 @@
+resource\PostResource.class
+resource\LikeResource.class
+resource\CommentResource.class
+application\RestApplication.class
+resource\HelloResource.class
+resource\UserResource.class
