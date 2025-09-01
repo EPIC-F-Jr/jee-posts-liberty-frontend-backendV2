@@ -7,7 +7,7 @@
 
     <persistence-unit name="MyPU" transaction-type="JTA">
         <!-- Use Liberty-managed datasource -->
-        <jta-data-source>jdbc/socialMediaDB</jta-data-source>
+        <jta-data-source>jdbc/postsdb</jta-data-source>
 
         <!-- Entities -->
         <class>model.Post</class>

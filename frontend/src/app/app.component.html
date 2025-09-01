@@ -1,0 +1,169 @@
+<div class="app-container">
+  <!-- Sticky Hamburger Menu -->
+  <div class="hamburger-menu" [class.visible]="showHamburgerMenu" (click)="toggleMenu()">
+    <div class="hamburger-icon" [class.active]="menuOpen">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </div>
+
+  <!-- Mobile Menu Overlay -->
+  <div class="mobile-menu-overlay" [class.active]="menuOpen" (click)="closeMenu()">
+    <div class="mobile-menu">
+      <h3>Navigation</h3>
+      <ul>
+        <li><a href="#" (click)="scrollToTop()">🏠 Home</a></li>
+        <li><a href="#" (click)="scrollToPosts()">📝 Posts</a></li>
+        <li><a href="#" (click)="closeMenu()">ℹ️ About</a></li>
+        <li><a href="#" (click)="closeMenu()">📞 Contact</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Fixed Glassmorphism Side Panel -->
+  <div class="side-panel">
+    <div class="panel-section user-profile">
+      <h3 class="panel-title">Profile</h3>
+      <div class="user-avatar">👨‍💻</div>
+      <div class="user-name">Current User</div>
+      <div class="user-email">user@example.com</div>
+
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-number">2</span>
+          <span class="stat-label">Posts</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">12</span>
+          <span class="stat-label">Likes</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">8</span>
+          <span class="stat-label">Comments</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">5</span>
+          <span class="stat-label">Users</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <h3 class="panel-title">Quick Actions</h3>
+      <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+        <button style="
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          color: white;
+          border: none;
+          padding: 0.8rem 1rem;
+          border-radius: 15px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(102, 126, 234, 0.4)'"
+          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
+          (click)="openNewPostPanel()">
+          ✍️ New Post
+        </button>
+
+        <button style="
+          background: rgba(255, 255, 255, 0.15);
+          color: white;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          padding: 0.8rem 1rem;
+          border-radius: 15px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          backdrop-filter: blur(10px);
+        " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.transform='translateY(-2px)'"
+          onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.transform='translateY(0)'"
+          (click)="openNewPostPanel()">
+          ✏️ Write New Post
+        </button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <h3 class="panel-title">Recent Activity</h3>
+      <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; text-align: center; padding: 1rem 0;">
+        No recent activity
+      </div>
+    </div>
+  </div>
+
+  <header class="app-header" #appHeader>
+    <div class="header-content">
+      <h1 class="app-title">
+        <span class="title-icon">📝</span>
+        Welcome to {{ title }}!
+      </h1>
+      <p class="app-subtitle">Spring Boot + Angular 6 Integration</p>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="app-footer">
+    <p>&copy; 2025 Posts Application. Made with ❤️</p>
+  </footer>
+
+  <!-- New Post Letter Writing Panel -->
+  <div class="new-post-panel" [class.active]="showNewPostPanel" #newPostPanel>
+    <div class="panel-overlay" (click)="closeFromOverlay()"></div>
+    <div class="letter-writing-panel">
+      <div class="letter-header">
+        <div class="letter-close" (click)="closeNewPostPanel()">✕</div>
+        <h3 class="letter-title">📝 Compose New Letter</h3>
+        <div class="letter-date">{{ getCurrentDate() }}</div>
+      </div>
+
+      <div class="letter-paper">
+        <div class="paper-lines"></div>
+        <div class="letter-content">
+          <div class="letter-greeting">
+            <label for="recipient">Dear Community,</label>
+          </div>
+
+          <div class="letter-body">
+            <textarea #contentTextarea [value]="newPostContent" (input)="updateContent($event)" placeholder="Share your thoughts, stories, or ideas with the community...
+
+What's on your mind today?" class="letter-textarea" rows="8" maxlength="1000">
+            </textarea>
+            <div class="character-count">{{ (newPostContent && newPostContent.length) || 0 }}/1000 characters</div>
+            <!-- Debug info -->
+            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+              Content length: {{ newPostContent?.length || 0 }} | Author length: {{ authorName?.length || 0 }} | Can submit: {{ canSubmitPost() }}
+            </div>
+          </div>
+
+          <div class="letter-signature">
+            <div class="signature-line">
+              <label>Sincerely,</label>
+              <input #authorInput [value]="authorName" (input)="updateAuthor($event)" placeholder="Your name" class="signature-input" maxlength="50">
+            </div>
+            <div class="signature-flourish">✒️</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="letter-actions">
+        <button class="letter-button cancel" (click)="closeNewPostPanel()">
+          🗑️ Discard Draft
+        </button>
+        <button class="letter-button send" (click)="submitNewPost(); $event.stopPropagation()" [disabled]="!canSubmitPost() || submittingPost">
+          <span *ngIf="submittingPost">📤 Sending...</span>
+          <span *ngIf="!submittingPost">✉️ Send Letter</span>
+        </button>
+      </div>
+
+      <div class="letter-decorations">
+        <div class="wax-seal">🔱</div>
+        <div class="envelope-corner"></div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,463 @@
+<div class="posts-container">
+  <h2>✨ Latest Posts</h2>
+
+  <div *ngIf="loading" class="loading">
+    <div class="loading-spinner"></div>
+    Loading posts...
+  </div>
+
+  <div *ngIf="error" class="error">
+    <strong>Oops! Something went wrong</strong><br>
+    {{ error }}
+  </div>
+
+  <div *ngIf="!loading && !error">
+    <div *ngIf="postDTO.length === 0" class="no-posts">
+      <div class="no-posts-icon">📝</div>
+      <h3>No posts available yet</h3>
+      <p>Be the first to share something amazing!</p>
+    </div>
+
+    <div *ngFor="let post of postDTO; let i = index" class="post-card" [attr.data-index]="i" #postCard
+      [style.animation-delay.ms]="i * 100">
+
+      <div class="post-header">
+        <div class="user-info">
+          <strong>{{ post?.post?.user?.username || 'Anonymous User' }}</strong>
+          <small>@{{ post?.post?.user?.id }}</small>
+        </div>
+
+<div class="post-actions-wrapper" #postActions>
+  <button class="post-actions-btn" (click)="togglePostOptions(post); $event.stopPropagation()">⋯</button>
+
+  <!-- Updated class name -->
+  <div class="options-bubble" [class.visible]="post.showOptions">
+    <button (click)="openShareOptions(post)">🔗 Share</button>
+    <button *ngIf="post.post.user.id === getCurrentUserId()" (click)="editPost(post)">✏️ Edit</button>
+    <button *ngIf="post.post.user.id === getCurrentUserId()" (click)="deletePost(post)">🗑️ Delete</button>
+  </div>
+</div>
+
+        <div class="post-date">
+          <span class="date-badge">{{ getCurrentDate() }}</span>
+        </div>
+      </div>
+
+      <div class="post-content">
+        {{ post?.post?.content }}
+      </div>
+
+      <div class="post-footer">
+      <span class="likes likes-bubble-container" [class.liked]="isPostLikedByCurrentUser(post)" (click)="toggleLike(post)">
+        {{ post.likes?.length || 0 }} likes
+        <span class="likes-bubble" *ngIf="post.likes?.length > 0">
+          <ng-container *ngFor="let like of post.likes">
+            <span class="bubble-user">{{ like?.user?.username || 'Anonymous' }}</span>
+          </ng-container>
+        </span>
+      </span>
+        <span class="comments" (click)="toggleComments(post?.post?.id)" [class.active]="isCommentsExpanded(post?.post?.id)">
+          {{ post.comments?.length || 0 }} comments
+          <span class="expand-icon">{{ isCommentsExpanded(post?.post?.id) ? '▲' : '▼' }}</span>
+        </span>
+      </div>
+
+      <!-- Expandable Comments Section -->
+      <div class="comments-section" [class.expanded]="isCommentsExpanded(post?.post.id)"
+        *ngIf="isCommentsExpanded(post?.post.id)">
+
+        <!-- Add New Comment Section (Always visible when expanded) -->
+        <div class="add-comment-section">
+          <div class="comment-input-header">
+            <span class="comment-input-title">💬 Add a comment</span>
+          </div>
+          <div class="comment-input-wrapper">
+            <div class="comment-author-avatar">
+              <span class="current-user-avatar">👤</span>
+            </div>
+            <div class="comment-input-container">
+              <textarea
+                class="comment-input"
+                placeholder="Share your thoughts on this post..."
+                rows="3"
+                maxlength="500"
+                [(ngModel)]="newCommentText[post.post.id]"
+                #commentTextarea>
+              </textarea>
+              <div class="comment-input-footer">
+                <div class="comment-char-count">
+                  {{ (newCommentText[post.post.id]?.length || 0) }}/500
+                </div>
+                <div class="comment-actions">
+                  <button
+                    class="comment-cancel-btn"
+                    (click)="clearComment(post.post.id)"
+                    *ngIf="newCommentText[post.post.id]?.length > 0">
+                    Cancel
+                  </button>
+                  <button
+                    class="comment-submit-btn"
+                    (click)="submitComment(post.post.id)"
+                    [disabled]="!newCommentText[post.post.id]?.trim() || submittingComment[post.post.id]">
+                    <span *ngIf="submittingComment[post.post.id]">Posting...</span>
+                    <span *ngIf="!submittingComment[post.post.id]">💬 Post Comment</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Existing Comments List -->
+        <div *ngIf="post.comments && post.comments.length > 0">
+          <div class="comments-header">
+            <h4>Comments ({{ post.comments.length }})</h4>
+          </div>
+          <div class="comments-list">
+            <div *ngFor="let comment of post.comments" class="comment-item">
+              <div class="comment-header">
+                <span class="comment-author">{{ comment.user?.username || 'Anonymous' }}</span>
+                <span class="comment-email">@{{ comment.user?.id }}</span>
+              </div>
+              <div class="comment-content">
+                {{ comment.content }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State Message (only when no comments exist) -->
+        <div *ngIf="!post.comments || post.comments.length === 0" class="no-comments-message">
+          <div class="no-comments-icon">💭</div>
+          <p>Be the first to comment on this post!</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Fixed Glassmorphism Side Panel -->
+<div class="side-panel">
+  <div class="panel-section user-profile">
+    <h3 class="panel-title">Profile</h3>
+    <div class="user-avatar">👨‍💻</div>
+    <div class="user-name">Current User</div>
+    <div class="user-email">user@example.com</div>
+
+    <div class="stats-grid">
+      <div class="stat-item">
+        <span class="stat-number">{{ postDTO?.length || 0 }}</span>
+        <span class="stat-label">Posts</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ getTotalLikes() }}</span>
+        <span class="stat-label">Likes</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ getTotalComments() }}</span>
+        <span class="stat-label">Comments</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ getActiveUsers() }}</span>
+        <span class="stat-label">Users</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <h3 class="panel-title">Quick Actions</h3>
+    <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+      <button style="
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 0.8rem 1rem;
+        border-radius: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      " (click)="openNewPostPanel()"
+        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(102, 126, 234, 0.4)'"
+        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+        ✍️ New Post
+      </button>
+
+      <button style="
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 0.8rem 1rem;
+        border-radius: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+      " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.transform='translateY(-2px)'"
+        onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.transform='translateY(0)'">
+        ✏️ Write New Post
+      </button>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <h3 class="panel-title">Recent Activity</h3>
+    <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; text-align: center; padding: 1rem 0;">
+      No recent activity
+    </div>
+  </div>
+</div>
+
+<!-- Online Users Panel (Right Side) -->
+<div class="online-users-panel">
+  <div class="panel-section">
+    <h3 class="panel-title">🟢 Online Now</h3>
+    <div class="online-count">{{ getOnlineUsers().length }} users active</div>
+
+    <div class="users-list">
+      <div *ngFor="let user of getOnlineUsers()" class="user-item">
+        <div class="user-status-indicator"></div>
+        <div class="user-avatar-small">{{ getUserAvatar(user) }}</div>
+        <div class="user-info-small">
+          <div class="user-name-small">{{ user.username }}</div>
+          <div class="user-status">{{ getUserStatus(user) }}</div>
+        </div>
+        <div class="user-activity">{{ getUserLastActivity(user) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <h3 class="panel-title">📊 Live Activity</h3>
+    <div class="activity-feed">
+      <div *ngFor="let activity of getRecentActivity()" class="activity-item">
+        <div class="activity-icon">{{ activity.icon }}</div>
+        <div class="activity-text">
+          <span class="activity-user">{{ activity.username }}</span>
+          <span class="activity-action">{{ activity.action }}</span>
+        </div>
+        <div class="activity-time">{{ activity.timeAgo }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <h3 class="panel-title">🎯 Quick Stats</h3>
+    <div class="mini-stats">
+      <div class="mini-stat">
+        <span class="mini-stat-number">{{ getTodaysPosts() }}</span>
+        <span class="mini-stat-label">Today's Posts</span>
+      </div>
+      <div class="mini-stat">
+        <span class="mini-stat-number">{{ getActiveDiscussions() }}</span>
+        <span class="mini-stat-label">Active Threads</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Post Letter Writing Panel -->
+<div class="new-post-panel" [class.active]="showNewPostPanel">
+  <div class="panel-overlay" (click)="closeNewPostPanel()"></div>
+  <div class="letter-writing-panel">
+    <div class="letter-header">
+      <div class="letter-close" (click)="closeNewPostPanel()">✕</div>
+      <h3 class="letter-title">📝 Compose New Letter</h3>
+      <div class="letter-date">{{ getCurrentDate() }}</div>
+    </div>
+
+    <div class="letter-paper">
+      <div class="paper-lines"></div>
+      <div class="letter-content">
+        <div class="letter-greeting">
+          <label for="recipient">Dear Community,</label>
+        </div>
+
+        <div class="letter-body">
+          <textarea #contentTextarea [value]="newPostContent" placeholder="Share your thoughts, stories, or ideas with the community...
+
+What's on your mind today?" class="letter-textarea" rows="8" maxlength="1000" (input)="onContentChange($event)">
+          </textarea>
+          <div class="character-count">{{ (newPostContent?.length || 0) }}/1000 characters</div>
+        </div>
+
+        <div class="letter-signature">
+          <div class="signature-line">
+            <label>Sincerely,</label>
+            <input #authorInput placeholder="Your name" class="signature-input" maxlength="50"
+              (input)="onAuthorChange($event)">
+          </div>
+          <div class="signature-flourish">✒️</div>
+        </div>
+      </div>
+    </div>
+
+<div class="letter-actions">
+  <button class="letter-button cancel" (click)="closeNewPostPanel()">
+    🗑️ Discard Draft
+  </button>
+  <button class="letter-button send" (click)="submitNewPost()" [disabled]="!canSubmitPost() || submittingPost">
+    <span *ngIf="submittingPost">📤 Sending...</span>
+    <span *ngIf="!submittingPost">✉️ Send Letter</span>
+  </button>
+</div>
+
+    <div class="letter-decorations">
+      <div class="wax-seal">🔱</div>
+      <div class="envelope-corner"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Existing styles would remain the same, plus these new comment input styles */
+
+.add-comment-section {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.comment-input-header {
+  margin-bottom: 0.75rem;
+}
+
+.comment-input-title {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+}
+
+.comment-input-wrapper {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.comment-author-avatar {
+  flex-shrink: 0;
+}
+
+.current-user-avatar {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+}
+
+.comment-input-container {
+  flex: 1;
+}
+
+.comment-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: white;
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+  min-height: 60px;
+  transition: all 0.3s ease;
+}
+
+.comment-input:focus {
+  outline: none;
+  border-color: rgba(102, 126, 234, 0.5);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.comment-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.comment-input-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.comment-char-count {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.comment-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.comment-cancel-btn, .comment-submit-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.comment-cancel-btn {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.comment-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.comment-submit-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+.comment-submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.comment-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.no-comments-message {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.no-comments-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.no-comments-message p {
+  margin: 0;
+  font-style: italic;
+}
+
+/* Enhanced comments section visibility */
+.comments-section.expanded {
+  max-height: none;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  margin-top: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+</style>

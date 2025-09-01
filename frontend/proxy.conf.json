@@ -1,0 +1,20 @@
+{
+  "/posts": {
+    "target": "http://localhost:9080/jee-liberty-posts-war",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/comments": {
+    "target": "http://localhost:9080/jee-liberty-posts-war",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/likes": {
+    "target": "http://localhost:9080/jee-liberty-posts-war",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

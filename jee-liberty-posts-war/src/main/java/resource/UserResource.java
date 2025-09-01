@@ -33,14 +33,14 @@ public class UserResource {
 
     @GET
     @Path("/{id}")
-    public Response getUser(@PathParam("id") String id) {
+    public Response getUser(@PathParam("id") Long id) {
         User user = userService.getUserById(id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         return Response.ok(user).build();
     }
-    
+
     @GET
     @Path("/username/{username}")
     public Response getUserByUsername(@PathParam("username") String username) {
@@ -53,7 +53,7 @@ public class UserResource {
 
     @PUT
     @Path("/{id}")
-    public Response updateUser(@PathParam("id") String id, User user) {
+    public Response updateUser(@PathParam("id") Long id, User user) {
         User existingUser = userService.getUserById(id);
         if (existingUser == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -65,7 +65,7 @@ public class UserResource {
 
     @DELETE
     @Path("/{id}")
-    public Response deleteUser(@PathParam("id") String id) {
+    public Response deleteUser(@PathParam("id") Long id) {
         User user = userService.getUserById(id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();

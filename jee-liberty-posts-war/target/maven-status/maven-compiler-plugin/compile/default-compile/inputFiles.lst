@@ -1,4 +1,12 @@
+C:\Users\EricMphande\Documents\eclipse-workspace\jee-liberty-posts\jee-liberty-posts-war\src\main\java\application\CORSFilter.java
 C:\Users\EricMphande\Documents\eclipse-workspace\jee-liberty-posts\jee-liberty-posts-war\src\main\java\application\RestApplication.java
+C:\Users\EricMphande\Documents\eclipse-workspace\jee-liberty-posts\jee-liberty-posts-war\src\main\java\dto\CommentDTO.java
+C:\Users\EricMphande\Documents\eclipse-workspace\jee-liberty-posts\jee-liberty-posts-war\src\main\java\dto\CommentUpdateDTO.java
+C:\Users\EricMphande\Documents\eclipse-workspace\jee-liberty-posts\jee-liberty-posts-war\src\main\java\dto\LikeDTO.java
+C:\Users\EricMphande\Documents\eclipse-workspace\jee-liberty-posts\jee-liberty-posts-war\src\main\java\dto\LikeInputDTO.java
+C:\Users\EricMphande\Documents\eclipse-workspace\jee-liberty-posts\jee-liberty-posts-war\src\main\java\dto\PostDTO.java
+C:\Users\EricMphande\Documents\eclipse-workspace\jee-liberty-posts\jee-liberty-posts-war\src\main\java\dto\PostUpdateDTO.java
+C:\Users\EricMphande\Documents\eclipse-workspace\jee-liberty-posts\jee-liberty-posts-war\src\main\java\dto\UserDTO.java
 C:\Users\EricMphande\Documents\eclipse-workspace\jee-liberty-posts\jee-liberty-posts-war\src\main\java\resource\CommentResource.java
 C:\Users\EricMphande\Documents\eclipse-workspace\jee-liberty-posts\jee-liberty-posts-war\src\main\java\resource\HelloResource.java
 C:\Users\EricMphande\Documents\eclipse-workspace\jee-liberty-posts\jee-liberty-posts-war\src\main\java\resource\LikeResource.java

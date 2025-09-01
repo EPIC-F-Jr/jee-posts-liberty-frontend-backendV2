@@ -7,7 +7,11 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
 import java.util.List;
+
+import dto.LikeDTO;
+import dto.LikeInputDTO;
 
 @ApplicationScoped
 @Path("/likes")
@@ -17,65 +21,69 @@ public class LikeResource {
 
     @EJB
     private LikeServiceLocal likeService;
-    
 
     @GET
     public Response getAllLikes() {
         List<Like> likes = likeService.getAllLikes();
         return Response.ok(likes).build();
     }
-    
+
     @GET
     @Path("/target/{targetId}")
-    public Response getLikesByTargetId(@PathParam("targetId") String targetId) {
+    public Response getLikesByTargetId(@PathParam("targetId") Long targetId) {
         List<Like> likes = likeService.getLikesByTargetId(targetId);
         return Response.ok(likes).build();
     }
-    
+
     @GET
     @Path("/target/{targetId}/type/{targetType}")
-    public Response getLikesByTargetIdAndType(@PathParam("targetId") String targetId, 
-                                            @PathParam("targetType") String targetType) {
+    public Response getLikesByTargetIdAndType(@PathParam("targetId") Long targetId,
+            @PathParam("targetType") String targetType) {
         List<Like> likes = likeService.getLikesByTargetIdAndType(targetId, targetType);
         return Response.ok(likes).build();
     }
-    
+
     @GET
     @Path("/target/{targetId}/type/{targetType}/count")
-    public Response getLikesCount(@PathParam("targetId") String targetId, 
-                                @PathParam("targetType") String targetType) {
+    public Response getLikesCount(@PathParam("targetId") Long targetId,
+            @PathParam("targetType") String targetType) {
         long count = likeService.countLikesByTargetIdAndType(targetId, targetType);
         return Response.ok("{\"count\":" + count + "}").build();
     }
 
     @POST
-    public Response createLike(Like like) {
-        // Check if like already exists
-        Like existingLike = likeService.findExistingLike(like.getUser(), like.getTargetId(), like.getTargetType());
-        if (existingLike != null) {
-            return Response.status(Response.Status.CONFLICT)
-                         .entity("{\"message\":\"Like already exists\"}")
-                         .build();
+    @Path("/create")
+    public Response createLike(LikeInputDTO input) {
+        if (input == null || input.getUserId() == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Invalid input\"}")
+                    .build();
         }
-        
-        likeService.createLike(like);
-        return Response.status(Response.Status.CREATED).build();
+
+        // Delegate everything to the service layer
+        Like newLike = likeService.createLike(input.getUserId(), input.getTargetId(), input.getTargetType());
+        if (newLike == null) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity("{\"message\":\"Like already exists\"}")
+                    .build();
+        }
+
+        return Response.status(Response.Status.CREATED)
+                .entity(LikeDTO.fromEntity(newLike))
+                .build();
     }
-    
+
     @POST
     @Path("/toggle")
-    public Response toggleLike(Like like) {
-        Like existingLike = likeService.findExistingLike(like.getUser(), like.getTargetId(), like.getTargetType());
-        
-        if (existingLike != null) {
-            // Unlike - remove the existing like
-            likeService.deleteLike(existingLike);
-            return Response.ok("{\"action\":\"unliked\"}").build();
-        } else {
-            // Like - create new like
-            likeService.createLike(like);
-            return Response.ok("{\"action\":\"liked\"}").build();
+    public Response toggleLike(LikeInputDTO input) {
+        if (input == null || input.getUserId() == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Invalid input\"}")
+                    .build();
         }
+
+        String action = likeService.toggleLike(input.getUserId(), input.getTargetId(), input.getTargetType());
+        return Response.ok("{\"action\":\"" + action + "\"}").build();
     }
 
     @GET

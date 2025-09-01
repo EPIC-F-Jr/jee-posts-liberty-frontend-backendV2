@@ -1,6 +1,14 @@
 resource\PostResource.class
+dto\CommentDTO.class
+dto\PostDTO.class
 resource\LikeResource.class
 resource\CommentResource.class
-application\RestApplication.class
-resource\HelloResource.class
 resource\UserResource.class
+dto\UserDTO.class
+application\CORSFilter.class
+dto\LikeDTO.class
+application\RestApplication.class
+dto\CommentUpdateDTO.class
+dto\PostUpdateDTO.class
+dto\LikeInputDTO.class
+resource\HelloResource.class

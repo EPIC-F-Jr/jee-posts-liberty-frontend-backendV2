@@ -6,17 +6,27 @@ import java.util.List;
 
 public interface CommentServiceLocal {
 
+    /** Get all active comments */
     List<Comment> getAllComments();
 
-    List<Comment> getCommentsByPostId(String postId);
+    /** Get all active comments for a post */
+    List<Comment> getCommentsByPostId(Long postId);
 
+    /** Get all active comments by a user */
     List<Comment> getCommentsByUser(User user);
 
-    void createComment(Comment comment);
+    /** Create a new comment (set timestamps and active) */
+    Comment createComment(Comment comment, Long userId);
 
-    Comment getCommentById(String id);
+    /** Get a comment by its ID (active only) */
+    Comment getCommentById(Long id);
 
+    /** Update a comment (update timestamp) */
     void updateComment(Comment comment);
 
-    void deleteComment(String id);
+    /** Soft delete a comment (set inactive and update timestamp) */
+    void deleteComment(Long id);
+
+    /** Get all comments (active and inactive, for admin/audit) */
+    List<Comment> getAllCommentsAdmin();
 }

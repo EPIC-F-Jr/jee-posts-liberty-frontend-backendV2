@@ -1,0 +1,928 @@
+/* =================================================================
+   LETTER WRITING MODAL PANEL
+   ================================================================= */
+
+/* New Post Letter Writing Panel */
+.new-post-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.new-post-panel.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.panel-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+}
+
+.letter-writing-panel {
+  position: relative;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  background: linear-gradient(145deg,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(250, 250, 250, 0.98) 100%);
+  backdrop-filter: blur(25px);
+  border-radius: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.3),
+    0 10px 30px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transform: scale(0.8) translateY(50px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.new-post-panel.active .letter-writing-panel {
+  transform: scale(1) translateY(0);
+}
+
+/* Letter Header */
+.letter-header {
+  padding: 1.5rem 2rem 1rem;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+  position: relative;
+  background: linear-gradient(135deg,
+      rgba(102, 126, 234, 0.08) 0%,
+      rgba(118, 75, 162, 0.05) 100%);
+}
+
+.letter-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 50%;
+  color: rgba(220, 38, 38, 0.8);
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.letter-close:hover {
+  background: rgba(220, 38, 38, 0.2);
+  transform: scale(1.1);
+  color: rgba(220, 38, 38, 1);
+}
+
+.letter-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: rgba(102, 126, 234, 0.9);
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.letter-date {
+  font-size: 0.9rem;
+  color: rgba(118, 75, 162, 0.7);
+  font-style: italic;
+}
+
+/* Letter Paper */
+.letter-paper {
+  position: relative;
+  padding: 2rem;
+  background:
+    linear-gradient(to right, rgba(102, 126, 234, 0.1) 1px, transparent 1px),
+    linear-gradient(rgba(118, 75, 162, 0.05) 1px, transparent 1px);
+  background-size: 40px 25px;
+  min-height: 400px;
+}
+
+.paper-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(transparent,
+      transparent 24px,
+      rgba(102, 126, 234, 0.1) 25px);
+  pointer-events: none;
+}
+
+.letter-content {
+  position: relative;
+  z-index: 2;
+}
+
+.letter-greeting {
+  margin-bottom: 1.5rem;
+}
+
+.letter-greeting label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(102, 126, 234, 0.8);
+  font-family: 'Georgia', serif;
+}
+
+.letter-body {
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.letter-textarea {
+  width: 100%;
+  min-height: 200px;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: vertical;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(50, 50, 50, 0.9);
+  font-family: 'Georgia', serif;
+  padding: 0;
+  margin: 0;
+}
+
+.letter-textarea::placeholder {
+  color: rgba(102, 126, 234, 0.7);
+  font-style: italic;
+  opacity: 1;
+}
+
+.character-count {
+  position: absolute;
+  bottom: -25px;
+  right: 0;
+  font-size: 0.8rem;
+  color: rgba(118, 75, 162, 0.6);
+}
+
+.letter-signature {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 2rem;
+}
+
+.signature-line {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.signature-line label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(102, 126, 234, 0.8);
+  font-family: 'Georgia', serif;
+}
+
+.signature-input {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+  outline: none;
+  padding: 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(50, 50, 50, 0.9);
+  font-family: 'Georgia', serif;
+  min-width: 200px;
+  transition: all 0.3s ease;
+}
+
+.signature-input:focus {
+  border-bottom-color: rgba(102, 126, 234, 0.8);
+}
+
+.signature-input::placeholder {
+  color: rgba(102, 126, 234, 0.4);
+  font-style: italic;
+}
+
+.signature-flourish {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.8;
+}
+
+/* Letter Actions */
+.letter-actions {
+  padding: 1.5rem 2rem;
+  border-top: 2px solid rgba(102, 126, 234, 0.1);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  background: linear-gradient(135deg,
+      rgba(102, 126, 234, 0.05) 0%,
+      rgba(118, 75, 162, 0.03) 100%);
+}
+
+.letter-button {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.letter-button.cancel {
+  background: rgba(220, 38, 38, 0.1);
+  color: rgba(220, 38, 38, 0.8);
+  border: 2px solid rgba(220, 38, 38, 0.2);
+}
+
+.letter-button.cancel:hover {
+  background: rgba(220, 38, 38, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
+}
+
+.letter-button.send {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  flex: 1;
+  justify-content: center;
+}
+
+.letter-button.send:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.letter-button.send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Letter Decorations */
+.letter-decorations {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.wax-seal {
+  position: absolute;
+  bottom: 1rem;
+  right: 2rem;
+  font-size: 1.5rem;
+  color: rgba(118, 75, 162, 0.3);
+  transform: rotate(-15deg);
+}
+
+.envelope-corner {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg,
+      rgba(102, 126, 234, 0.1) 0%,
+      rgba(118, 75, 162, 0.05) 100%);
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .letter-writing-panel {
+    width: 95%;
+    margin: 1rem;
+  }
+
+  .letter-header,
+  .letter-actions {
+    padding: 1rem;
+  }
+
+  .letter-paper {
+    padding: 1rem;
+  }
+
+  .letter-actions {
+    flex-direction: column;
+  }
+
+  .signature-line {
+    align-items: center;
+  }
+
+  .signature-input {
+    min-width: 150px;
+    text-align: center;
+  }
+}
+
+/* =================================================================
+   ENVELOPE BACKGROUND MOTIFS AND DECORATIONS
+   ================================================================= */
+
+/* Envelope Background Motif */
+.posts-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    /* Multiple envelope shapes scattered across the background */
+    radial-gradient(ellipse 200px 150px at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse 180px 130px at 80% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 220px 160px at 60% 20%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 190px 140px at 30% 80%, rgba(255, 255, 255, 0.09) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Individual envelope shapes for each post */
+.post-card::after {
+  content: '📮';
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  right: -20px;
+  bottom: -20px;
+  background:
+    /* Envelope body */
+    linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 30%, rgba(255, 255, 255, 0.05) 70%, transparent 70%),
+    /* Envelope flap */
+    linear-gradient(-45deg, transparent 40%, rgba(240, 240, 255, 0.08) 40%, rgba(240, 240, 255, 0.08) 60%, transparent 60%);
+  border-radius: 25px;
+  box-shadow:
+    /* Envelope shadow */
+    0 -5px 15px rgba(102, 126, 234, 0.1),
+    0 5px 25px rgba(102, 126, 234, 0.05),
+    /* Inner envelope lines */
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  z-index: -1;
+  transform: rotate(-2deg);
+  transition: all 0.3s ease;
+  /* Postal stamp positioning */
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 15px 20px;
+  font-size: 1.2rem;
+  color: rgba(102, 126, 234, 0.3);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.post-card:hover::after {
+  transform: rotate(-1deg) scale(1.02);
+  box-shadow:
+    0 -8px 25px rgba(102, 126, 234, 0.15),
+    0 8px 35px rgba(102, 126, 234, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  color: rgba(102, 126, 234, 0.5);
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.7);
+}
+
+/* =================================================================
+   DARK MODE STYLES
+   ================================================================= */
+
+/* Dark mode support using CSS custom properties and media query */
+@media (prefers-color-scheme: dark) {
+  :host {
+    --bg-primary: rgba(15, 23, 42, 0.95);
+    --bg-secondary: rgba(30, 41, 59, 0.9);
+    --bg-card: rgba(51, 65, 85, 0.95);
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --border-color: rgba(71, 85, 105, 0.3);
+    --accent-primary: #3b82f6;
+    --accent-secondary: #8b5cf6;
+    --glass-bg: rgba(15, 23, 42, 0.8);
+    --glass-border: rgba(71, 85, 105, 0.3);
+  }
+
+  /* Posts container background adjustments */
+  .posts-container {
+    background: var(--bg-primary);
+  }
+
+  .posts-container h2 {
+    color: var(--text-primary);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Side panel dark mode */
+  .side-panel {
+    background: linear-gradient(135deg,
+      rgba(15, 23, 42, 0.9) 0%,
+      rgba(30, 41, 59, 0.85) 50%,
+      rgba(51, 65, 85, 0.8) 100%);
+    border: 1px solid var(--glass-border);
+    box-shadow:
+      0 20px 40px rgba(0, 0, 0, 0.4),
+      0 8px 32px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(71, 85, 105, 0.3);
+  }
+
+  .side-panel:hover {
+    background: linear-gradient(135deg,
+      rgba(15, 23, 42, 0.95) 0%,
+      rgba(30, 41, 59, 0.9) 50%,
+      rgba(51, 65, 85, 0.85) 100%);
+    border-color: rgba(71, 85, 105, 0.4);
+  }
+
+  .panel-title,
+  .user-name {
+    color: var(--text-primary);
+  }
+
+  .user-email {
+    color: var(--text-secondary);
+    background: rgba(71, 85, 105, 0.3);
+  }
+
+  .stat-item {
+    background: rgba(71, 85, 105, 0.3);
+    border: 1px solid rgba(71, 85, 105, 0.4);
+  }
+
+  .stat-item:hover {
+    background: rgba(71, 85, 105, 0.4);
+  }
+
+  .stat-number {
+    color: var(--text-primary);
+  }
+
+  .stat-label {
+    color: var(--text-secondary);
+  }
+
+  /* Post cards dark mode */
+  .post-card {
+    background: linear-gradient(135deg,
+      rgba(51, 65, 85, 0.95) 0%,
+      rgba(71, 85, 105, 0.9) 100%);
+    border: 1px solid var(--border-color);
+    box-shadow:
+      0 15px 35px rgba(0, 0, 0, 0.3),
+      inset -5px -5px 10px rgba(15, 23, 42, 0.1);
+  }
+
+  .post-card:hover {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+  }
+
+  /* Post content dark mode */
+  .user-info strong {
+    color: var(--text-primary);
+    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+    border: 1px dashed rgba(59, 130, 246, 0.3);
+  }
+
+  .user-info strong:hover {
+    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.2) 0%, transparent 70%);
+    border-color: rgba(59, 130, 246, 0.4);
+  }
+
+  .user-info small {
+    color: var(--text-muted);
+    background: rgba(71, 85, 105, 0.3);
+  }
+
+  .post-content {
+    color: var(--text-secondary);
+    background: rgba(15, 23, 42, 0.3);
+    border-left: 4px solid var(--accent-primary);
+  }
+
+  /* Comments section dark mode */
+  .comments-section {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid var(--border-color);
+  }
+
+  .comments-header h4 {
+    color: var(--accent-primary);
+  }
+
+  .comment-item {
+    background: rgba(71, 85, 105, 0.6);
+    border-left: 4px solid var(--accent-primary);
+  }
+
+  .comment-item:hover {
+    background: rgba(71, 85, 105, 0.8);
+  }
+
+  .comment-author {
+    color: var(--text-primary);
+  }
+
+  .comment-email {
+    color: var(--text-muted);
+    background: rgba(71, 85, 105, 0.4);
+  }
+
+  .comment-content {
+    color: var(--text-secondary);
+  }
+
+  /* Online users panel dark mode */
+  .online-users-panel {
+    background: linear-gradient(145deg,
+      rgba(15, 23, 42, 0.9) 0%,
+      rgba(30, 41, 59, 0.85) 100%);
+    border: 2px solid var(--glass-border);
+    box-shadow:
+      0 25px 60px rgba(0, 0, 0, 0.4),
+      0 10px 30px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(71, 85, 105, 0.3);
+  }
+
+  .online-users-panel .panel-title {
+    color: var(--text-primary);
+  }
+
+  .online-count {
+    color: var(--text-secondary);
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+  }
+
+  .user-item {
+    background: rgba(71, 85, 105, 0.3);
+    border: 1px solid var(--border-color);
+  }
+
+  .user-item:hover {
+    background: rgba(71, 85, 105, 0.4);
+    border-color: rgba(71, 85, 105, 0.5);
+  }
+
+  .user-name-small {
+    color: var(--text-primary);
+  }
+
+  .user-status {
+    color: var(--text-muted);
+  }
+
+  .user-activity {
+    color: var(--text-muted);
+  }
+
+  /* Letter writing panel dark mode */
+  .letter-writing-panel {
+    background: linear-gradient(145deg,
+      rgba(51, 65, 85, 0.98) 0%,
+      rgba(71, 85, 105, 0.95) 100%);
+    border: 2px solid var(--border-color);
+    box-shadow:
+      0 25px 60px rgba(0, 0, 0, 0.5),
+      0 10px 30px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(71, 85, 105, 0.4);
+  }
+
+  .letter-title {
+    color: var(--accent-primary);
+  }
+
+  .letter-date {
+    color: var(--text-muted);
+  }
+
+  .letter-greeting label {
+    color: var(--accent-primary);
+  }
+
+  .letter-textarea {
+    color: var(--text-primary);
+  }
+
+  .letter-textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+  .signature-line label {
+    color: var(--accent-primary);
+  }
+
+  .signature-input {
+    color: var(--text-primary);
+    border-bottom: 2px solid rgba(59, 130, 246, 0.4);
+  }
+
+  .signature-input:focus {
+    border-bottom-color: var(--accent-primary);
+  }
+
+  .signature-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  /* Tooltips dark mode */
+  .likes-bubble {
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.95), rgba(71, 85, 105, 0.9)) !important;
+    color: var(--text-primary) !important;
+    border: 2px solid var(--border-color) !important;
+    box-shadow: 0 4px 18px 2px rgba(0, 0, 0, 0.3), 0 2px 12px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  .bubble-user {
+    color: var(--text-primary) !important;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)) !important;
+  }
+
+  /* Loading and error states dark mode */
+  .loading {
+    color: var(--text-primary);
+    background: rgba(71, 85, 105, 0.3);
+    border: 1px solid var(--border-color);
+  }
+
+  .loading-spinner {
+    border: 2px solid rgba(71, 85, 105, 0.3);
+    border-top: 2px solid var(--text-primary);
+  }
+
+  .no-posts {
+    color: var(--text-secondary);
+    background: rgba(71, 85, 105, 0.3);
+    border: 1px solid var(--border-color);
+  }
+
+  .no-posts h3 {
+    color: var(--text-primary);
+  }
+}
+
+/* =================================================================
+   ONLINE USERS PANEL (RIGHT SIDE)
+   ================================================================= */
+
+/* Online Users Panel (Right Side) */
+.online-users-panel {
+  position: fixed;
+  top: 50%;
+  right: 1.5rem;
+  transform: translateY(-50%);
+  width: 280px;
+  max-height: 80vh;
+  background: linear-gradient(145deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.05) 100%);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.2),
+    0 10px 30px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  overflow-y: auto;
+  z-index: 1000;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.online-users-panel::-webkit-scrollbar {
+  display: none;
+}
+
+.online-users-panel .panel-section {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.online-users-panel .panel-section:last-child {
+  border-bottom: none;
+}
+
+.online-users-panel .panel-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.online-count {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 1rem;
+  text-align: center;
+  padding: 0.5rem;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+/* Users List */
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.user-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.user-status-indicator {
+  width: 8px;
+  height: 8px;
+  background: #4ade80;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+  flex-shrink: 0;
+}
+
+.user-avatar-small {
+  font-size: 1.2rem;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(102, 126, 234, 0.2);
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.user-info-small {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name-small {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-status {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-activity {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+/* Activity Feed */
+.activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem;
+  background: rgba(118, 75, 162, 0.1);
+  border: 1px solid rgba(118, 75, 162, 0.2);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.activity-item:hover {
+  background: rgba(118, 75, 162, 0.15);
+  transform: translateX(-2px);
+}
+
+.activity-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.activity-text {
+  flex: 1;
+  font-size: 0.8rem;
+  min-width: 0;
+}
+
+.activity-user {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.activity-action {
+  color: rgba(255, 255, 255, 0.7);
+  margin-left: 0.3rem;
+}
+
+.activity-time {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+/* Mini Stats */
+.mini-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.mini-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.8rem;
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.mini-stat:hover {
+  background: rgba(102, 126, 234, 0.15);
+  transform: scale(1.02);
+}
+
+.mini-stat-number {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.mini-stat-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.2rem;
+  text-align: center;
+}
+
+/* Responsive Design for Online Users Panel */
+@media (max-width: 1400px) {
+  .online-users-panel {
+    right: 1rem;
+    width: 260px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .online-users-panel {
+    display: none;
+  }
+}
