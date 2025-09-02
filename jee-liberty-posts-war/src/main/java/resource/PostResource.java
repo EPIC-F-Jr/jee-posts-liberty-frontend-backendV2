@@ -58,14 +58,7 @@ public class PostResource {
     public Response createPost(Post post) {
         try {
             postService.createPost(post);
-
-            // Return PostDTO with likes and comments (empty for new posts)
-            PostDTO newPostDTO = new PostDTO(
-                    post,
-                    postService.getLikesByPost(post.getId()),
-                    postService.getCommentsByPost(post.getId()));
-
-            return Response.status(Response.Status.CREATED).entity(newPostDTO).build();
+            return Response.status(Response.Status.CREATED).entity(post).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("{\"error\":\"" + e.getMessage() + "\"}")

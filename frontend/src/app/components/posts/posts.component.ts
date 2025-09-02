@@ -90,7 +90,6 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
         postContent: newPost.post && newPost.post.content,
         userName: newPost.post && newPost.post.user && newPost.post.user.username
       });
-      console.log('Full new post object:', JSON.stringify(newPost, null, 2));
 
       // Add the new post to the beginning of the array
       this.postDTO.unshift(newPost);
@@ -300,8 +299,8 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
   private handleCardFlyout(element: HTMLElement, cardState: any, rect: DOMRect): void {
     // Skip if already has a flyout animation applied
     if (element.classList.contains('animate-out-left') ||
-        element.classList.contains('animate-out-right') ||
-        element.classList.contains('animate-out-bottom')) {
+      element.classList.contains('animate-out-right') ||
+      element.classList.contains('animate-out-bottom')) {
       return;
     }
 
@@ -355,8 +354,8 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
           hasAnimateIn: element.classList.contains('animate-in'),
           hasLoaded: element.classList.contains('loaded'),
           hasAnimateOut: element.classList.contains('animate-out-left') ||
-                       element.classList.contains('animate-out-right') ||
-                       element.classList.contains('animate-out-bottom')
+            element.classList.contains('animate-out-right') ||
+            element.classList.contains('animate-out-bottom')
         });
 
         // Trigger flyout when card is no longer intersecting (leaving viewport)
@@ -376,8 +375,8 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Skip if already animating out
     if (element.classList.contains('animate-out-left') ||
-        element.classList.contains('animate-out-right') ||
-        element.classList.contains('animate-out-bottom')) {
+      element.classList.contains('animate-out-right') ||
+      element.classList.contains('animate-out-bottom')) {
       return;
     }
 
@@ -560,7 +559,7 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     // Prevent recursive calls, unnecessary work, and too frequent rechecks
     const now = Date.now();
     if (this.isRecheckingCards || !this.postCards || this.postCards.length === 0 ||
-        (now - this.lastRecheckTime) < 200) { // Minimum 200ms between rechecks
+      (now - this.lastRecheckTime) < 200) { // Minimum 200ms between rechecks
       return;
     }
 
@@ -583,8 +582,8 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
 
           // Skip elements that are currently animating, recently adjusted, or in transition
           if (element.hasAttribute('data-animating') ||
-              element.hasAttribute('data-flyout-animating') ||
-              this.recentlyAdjustedCards.has(element)) {
+            element.hasAttribute('data-flyout-animating') ||
+            this.recentlyAdjustedCards.has(element)) {
             return;
           }
 
@@ -602,8 +601,8 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
           const hasAnimateInFromBottom = element.classList.contains('animate-in-from-bottom');
           const hasLoaded = element.classList.contains('loaded');
           const hasAnyFlyout = element.classList.contains('animate-out-left') ||
-                              element.classList.contains('animate-out-right') ||
-                              element.classList.contains('animate-out-bottom');
+            element.classList.contains('animate-out-right') ||
+            element.classList.contains('animate-out-bottom');
 
           // More conservative correction logic - only fix obvious mismatches
           let needsCorrection = false;
@@ -779,43 +778,43 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
- // Reference all post action elements in the template
-@ViewChildren('postActions') postActionsList!: QueryList<ElementRef>;
+  // Reference all post action elements in the template
+  @ViewChildren('postActions') postActionsList!: QueryList<ElementRef>;
 
-@HostListener('document:click', ['$event'])
-onDocumentClick(event: Event) {
-  const target = event.target as HTMLElement;
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    const target = event.target as HTMLElement;
 
-  // Close comment options if clicking outside
-  if (!target.closest('.comment-actions-wrapper')) {
+    // Close comment options if clicking outside
+    if (!target.closest('.comment-actions-wrapper')) {
+      this.postDTO.forEach(post => {
+        if (post.comments) {
+          post.comments.forEach(comment => {
+            comment.showOptions = false;
+          });
+        }
+      });
+    }
+
+    // Close post options if clicking outside
+    if (!target.closest('.post-actions-wrapper')) {
+      this.postDTO.forEach(post => {
+        post.showOptions = false;
+      });
+    }
+  }
+
+  closeAllOptions() {
+    // Use a safe type for showOptions without polluting PostDTO globally
     this.postDTO.forEach(post => {
-      if (post.comments) {
-        post.comments.forEach(comment => {
-          comment.showOptions = false;
-        });
-      }
+      (post as PostWithOptions).showOptions = false;
     });
   }
 
-  // Close post options if clicking outside
-  if (!target.closest('.post-actions-wrapper')) {
-    this.postDTO.forEach(post => {
-      post.showOptions = false;
-    });
+  togglePostOptions(post: PostDTO) {
+    (post as PostWithOptions).showOptions = !(post as PostWithOptions).showOptions;
+    console.log('Toggled post options for:', post.post.id, 'Now:', (post as PostWithOptions).showOptions);
   }
-}
-
-closeAllOptions() {
-  // Use a safe type for showOptions without polluting PostDTO globally
-  this.postDTO.forEach(post => {
-    (post as PostWithOptions).showOptions = false;
-  });
-}
-
-togglePostOptions(post: PostDTO) {
-  (post as PostWithOptions).showOptions = !(post as PostWithOptions).showOptions;
-  console.log('Toggled post options for:', post.post.id, 'Now:', (post as PostWithOptions).showOptions);
-}
   // Your existing methods
   openShareOptions(post: any) { console.log('Share', post); }
 
@@ -829,56 +828,56 @@ togglePostOptions(post: PostDTO) {
   // deletePost(post: any) { console.log('Delete', post); }
 
   deletePost(post: PostDTO): void {
-  if (!post || !post.post.id) return;
+    if (!post || !post.post.id) return;
 
-  // Optionally confirm with the user
-  if (!confirm('Are you sure you want to delete this post?')) return;
+    // Optionally confirm with the user
+    if (!confirm('Are you sure you want to delete this post?')) return;
 
-  // Call the service
-  this.postService.deletePost(Number(post.post.id)).subscribe({
-    next: () => {
-      // Remove from frontend list so UI updates immediately
-      this.postDTO = this.postDTO.filter(p => p.post.id !== post.post.id);
-      console.log('Post deleted successfully');
-    },
-    error: (err) => {
-      console.error('Error deleting post:', err);
-      alert('Failed to delete post. Check console for details.');
-    }
-  });
-}
+    // Call the service
+    this.postService.deletePost(Number(post.post.id)).subscribe({
+      next: () => {
+        // Remove from frontend list so UI updates immediately
+        this.postDTO = this.postDTO.filter(p => p.post.id !== post.post.id);
+        console.log('Post deleted successfully');
+      },
+      error: (err) => {
+        console.error('Error deleting post:', err);
+        alert('Failed to delete post. Check console for details.');
+      }
+    });
+  }
   addComment(postId: number, commentContent: string): void {
-  if (!commentContent || commentContent.trim() === '') return;
+    if (!commentContent || commentContent.trim() === '') return;
 
-  // Find the post DTO by ID
-  const postDTO = this.postDTO.find(p => Number(p.post.id) === postId);
-  if (!postDTO) return;
+    // Find the post DTO by ID
+    const postDTO = this.postDTO.find(p => Number(p.post.id) === postId);
+    if (!postDTO) return;
 
-  // Build the new comment object
-  const newComment = {
-    id: -Date.now(), // Temporary negative ID for frontend-only comment
-    postId: Number(postDTO.post.id),
-    content: commentContent.trim(),
-    active: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    user: {
-      id: Number(this.getCurrentUserId()), // Make sure this is a number
-      username: 'Current User',            // Replace with actual current user
-      role: 'user',
+    // Build the new comment object
+    const newComment = {
+      id: -Date.now(), // Temporary negative ID for frontend-only comment
+      postId: Number(postDTO.post.id),
+      content: commentContent.trim(),
       active: true,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-  };
+      updatedAt: new Date().toISOString(),
+      user: {
+        id: Number(this.getCurrentUserId()), // Make sure this is a number
+        username: 'Current User',            // Replace with actual current user
+        role: 'user',
+        active: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    };
 
-  // Initialize comments array if it doesn't exist
-  postDTO.comments = postDTO.comments ? postDTO.comments : [];
-  postDTO.comments.push(newComment);
+    // Initialize comments array if it doesn't exist
+    postDTO.comments = postDTO.comments ? postDTO.comments : [];
+    postDTO.comments.push(newComment);
 
-  // Clear input or reset form as needed
-  // commentContent = '';
-}
+    // Clear input or reset form as needed
+    // commentContent = '';
+  }
 
 
 
@@ -1077,32 +1076,32 @@ togglePostOptions(post: PostDTO) {
   /**
    * Delete comment functionality
    */
-deleteComment(comment: Comment) {
-  console.log('Attempting to delete comment:', comment.id);
+  deleteComment(comment: Comment) {
+    console.log('Attempting to delete comment:', comment.id);
 
-  this.commentService.deleteComment(comment.id).subscribe({
-    next: () => {
-      // Mark comment as inactive (soft delete)
-      comment.active = false;
-      comment.showOptions = false;
+    this.commentService.deleteComment(comment.id).subscribe({
+      next: () => {
+        // Mark comment as inactive (soft delete)
+        comment.active = false;
+        comment.showOptions = false;
 
-      // Force Angular change detection by creating a new array reference
-      this.postDTO = this.postDTO.map(post => {
-        if (post.comments) {
-          // Filter out inactive comments or just update the existing array
-          post.comments = [...post.comments];
-        }
-        return post;
-      });
+        // Force Angular change detection by creating a new array reference
+        this.postDTO = this.postDTO.map(post => {
+          if (post.comments) {
+            // Filter out inactive comments or just update the existing array
+            post.comments = [...post.comments];
+          }
+          return post;
+        });
 
-      console.log('Comment successfully marked as inactive');
-    },
-    error: (err) => {
-      console.error('Error deleting comment:', err);
-      alert('Failed to delete comment. Please try again.');
-    }
-  });
-}
+        console.log('Comment successfully marked as inactive');
+      },
+      error: (err) => {
+        console.error('Error deleting comment:', err);
+        alert('Failed to delete comment. Please try again.');
+      }
+    });
+  }
 
   /**
    * Get the count of active comments for a post
@@ -1189,7 +1188,7 @@ deleteComment(comment: Comment) {
   private getCurrentUserId(): number {
     return 1; // This should come from your authentication service
   }
-    private getCurrentUsername(): string {
+  private getCurrentUsername(): string {
     return "testuser"; // This should come from your authentication service
   }
 
@@ -1210,116 +1209,116 @@ deleteComment(comment: Comment) {
    * Toggles like status for a post (add/remove like).
    * TODO: Integrate with backend API for persistence.
    */
-toggleLike(post: PostDTO): void {
-  if (!post.post.id) {
-    return;
-  }
-
-  const currentUserId = this.getCurrentUserId();
-  const currentUsername = this.getCurrentUsername();
-  const isCurrentlyLiked = this.isPostLikedByCurrentUser(post);
-
-  if (isCurrentlyLiked) {
-    // --- Find the like BEFORE removing it ---
-    let likeToRemove: Like | undefined;
-    if (post.likes) {
-      likeToRemove = post.likes.find(like => like.user && like.user.id === currentUserId);
+  toggleLike(post: PostDTO): void {
+    if (!post.post.id) {
+      return;
     }
 
-    // --- Optimistically remove like locally ---
-    if (post.likes) {
-      post.likes = post.likes.filter(like => like.user && like.user.id !== currentUserId);
-    }
+    const currentUserId = this.getCurrentUserId();
+    const currentUsername = this.getCurrentUsername();
+    const isCurrentlyLiked = this.isPostLikedByCurrentUser(post);
 
-    // --- Persist unlike to backend ---
-    if (likeToRemove && likeToRemove.id) {
-      this.likeService.deleteLike(likeToRemove.id).subscribe({
-        next: () => {
-          console.log(`toggleLike: Successfully removed like (id=${likeToRemove.id}) for post=${post.post.id}`);
+    if (isCurrentlyLiked) {
+      // --- Find the like BEFORE removing it ---
+      let likeToRemove: Like | undefined;
+      if (post.likes) {
+        likeToRemove = post.likes.find(like => like.user && like.user.id === currentUserId);
+      }
+
+      // --- Optimistically remove like locally ---
+      if (post.likes) {
+        post.likes = post.likes.filter(like => like.user && like.user.id !== currentUserId);
+      }
+
+      // --- Persist unlike to backend ---
+      if (likeToRemove && likeToRemove.id) {
+        this.likeService.deleteLike(likeToRemove.id).subscribe({
+          next: () => {
+            console.log(`toggleLike: Successfully removed like (id=${likeToRemove.id}) for post=${post.post.id}`);
+          },
+          error: (err) => {
+            console.error(`toggleLike: Failed to remove like for post=${post.post.id}`, err);
+            // Rollback optimistic change
+            if (post.likes && likeToRemove) {
+              post.likes.push(likeToRemove);
+            }
+          }
+        });
+      }
+
+    } else {
+      // --- Create like object locally for immediate feedback ---
+      const tempLike: Like = {
+        id: 0, // placeholder until backend assigns ID
+        targetId: Number(post.post.id),
+        targetType: 'post',
+        active: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        user: {
+          id: currentUserId,
+          username: currentUsername,
+          active: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          role: 'user'
+        }
+      };
+
+      if (!post.likes) {
+        post.likes = [];
+      }
+      post.likes.push(tempLike);
+
+      // --- Persist like to backend ---
+      this.likeService.createLike({
+        targetId: post.post.id,
+        targetType: 'post',
+        userId: currentUserId
+      }).subscribe({
+        next: (createdLike) => {
+          console.log('toggleLike: Successfully created like:', createdLike);
+
+          // Normalize backend response into expected shape
+          const normalizedLike: Like = {
+            ...createdLike,
+            user: {
+              id: createdLike.user && createdLike.user.id
+                ? createdLike.user.id
+                : (createdLike.user.id || currentUserId),
+              username: createdLike.user && createdLike.user.username
+                ? createdLike.user.username
+                : (createdLike.user.username || currentUsername),
+              active: true,
+              createdAt: createdLike.createdAt || new Date().toISOString(),
+              updatedAt: createdLike.updatedAt || new Date().toISOString(),
+              role: 'user'
+            }
+          };
+
+          // Replace temp like with normalized persisted like
+          if (post.likes) {
+            const updatedLikes: Like[] = [];
+            for (let like of post.likes) {
+              if (like.id === 0 && like.user && like.user.id === currentUserId) {
+                updatedLikes.push(normalizedLike);
+              } else {
+                updatedLikes.push(like);
+              }
+            }
+            post.likes = updatedLikes;
+          }
         },
         error: (err) => {
-          console.error(`toggleLike: Failed to remove like for post=${post.post.id}`, err);
+          console.error(`toggleLike: Failed to persist like for post=${post.post.id}`, err);
           // Rollback optimistic change
-          if (post.likes && likeToRemove) {
-            post.likes.push(likeToRemove);
+          if (post.likes) {
+            post.likes = post.likes.filter(like => like.user && like.user.id !== currentUserId);
           }
         }
       });
     }
-
-  } else {
-    // --- Create like object locally for immediate feedback ---
-    const tempLike: Like = {
-      id: 0, // placeholder until backend assigns ID
-      targetId: Number(post.post.id),
-      targetType: 'post',
-      active: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      user: {
-        id: currentUserId,
-        username: currentUsername,
-        active: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        role: 'user'
-      }
-    };
-
-    if (!post.likes) {
-      post.likes = [];
-    }
-    post.likes.push(tempLike);
-
-    // --- Persist like to backend ---
-    this.likeService.createLike({
-      targetId: post.post.id,
-      targetType: 'post',
-      userId: currentUserId
-    }).subscribe({
-      next: (createdLike) => {
-        console.log('toggleLike: Successfully created like:', createdLike);
-
-        // Normalize backend response into expected shape
-        const normalizedLike: Like = {
-          ...createdLike,
-          user: {
-            id: createdLike.user && createdLike.user.id
-              ? createdLike.user.id
-              : (createdLike.user.id || currentUserId),
-            username: createdLike.user && createdLike.user.username
-              ? createdLike.user.username
-              : (createdLike.user.username || currentUsername),
-            active: true,
-            createdAt: createdLike.createdAt || new Date().toISOString(),
-            updatedAt: createdLike.updatedAt || new Date().toISOString(),
-            role: 'user'
-          }
-        };
-
-        // Replace temp like with normalized persisted like
-        if (post.likes) {
-          const updatedLikes: Like[] = [];
-          for (let like of post.likes) {
-            if (like.id === 0 && like.user && like.user.id === currentUserId) {
-              updatedLikes.push(normalizedLike);
-            } else {
-              updatedLikes.push(like);
-            }
-          }
-          post.likes = updatedLikes;
-        }
-      },
-      error: (err) => {
-        console.error(`toggleLike: Failed to persist like for post=${post.post.id}`, err);
-        // Rollback optimistic change
-        if (post.likes) {
-          post.likes = post.likes.filter(like => like.user && like.user.id !== currentUserId);
-        }
-      }
-    });
   }
-}
 
 
 
@@ -1350,37 +1349,37 @@ toggleLike(post: PostDTO): void {
   /**
    * Counts unique active users across posts, comments, and likes.
    */
-getActiveUsers(): number {
-  if (!this.postDTO) return 0;
-  const userIds = new Set<number>();
+  getActiveUsers(): number {
+    if (!this.postDTO) return 0;
+    const userIds = new Set<number>();
 
-  this.postDTO.forEach(postDTO => {
-    // Add post author safely
-    if (postDTO && postDTO.post && postDTO.post.user && postDTO.post.user.id) {
-      userIds.add(postDTO.post.user.id);
-    }
+    this.postDTO.forEach(postDTO => {
+      // Add post author safely
+      if (postDTO && postDTO.post && postDTO.post.user && postDTO.post.user.id) {
+        userIds.add(postDTO.post.user.id);
+      }
 
-    // Add comment authors safely
-    if (postDTO && Array.isArray(postDTO.comments)) {
-      postDTO.comments.forEach(comment => {
-        if (comment && comment.user && comment.user.id) {
-          userIds.add(comment.user.id);
-        }
-      });
-    }
+      // Add comment authors safely
+      if (postDTO && Array.isArray(postDTO.comments)) {
+        postDTO.comments.forEach(comment => {
+          if (comment && comment.user && comment.user.id) {
+            userIds.add(comment.user.id);
+          }
+        });
+      }
 
-    // Add users who liked posts safely
-    if (postDTO && Array.isArray(postDTO.likes)) {
-      postDTO.likes.forEach(like => {
-        if (like && like.user && like.user.id) {
-          userIds.add(like.user.id);
-        }
-      });
-    }
-  });
+      // Add users who liked posts safely
+      if (postDTO && Array.isArray(postDTO.likes)) {
+        postDTO.likes.forEach(like => {
+          if (like && like.user && like.user.id) {
+            userIds.add(like.user.id);
+          }
+        });
+      }
+    });
 
-  return userIds.size;
-}
+    return userIds.size;
+  }
 
   // ==========================================
   // NEW POST PANEL MANAGEMENT
