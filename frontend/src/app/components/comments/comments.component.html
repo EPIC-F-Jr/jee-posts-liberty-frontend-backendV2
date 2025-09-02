@@ -1,0 +1,111 @@
+<!-- Comment Toggle Button -->
+<div class="post-footer">
+  <span class="comments" (click)="onToggleComments()" [class.active]="isExpanded">
+    {{ getActiveCommentsCount(post.comments) }} comments
+    <span class="expand-icon">{{ isExpanded ? '▲' : '▼' }}</span>
+  </span>
+</div>
+
+<!-- Expandable Comments Section -->
+<div class="comments-section" [class.expanded]="isExpanded" *ngIf="isExpanded">
+
+  <!-- Add New Comment Section -->
+  <div class="add-comment-section">
+    <div class="comment-input-header">
+      <span class="comment-input-title">Add a comment</span>
+    </div>
+    <div class="comment-input-wrapper">
+      <div class="comment-author-avatar">
+        <span class="current-user-avatar">👤</span>
+      </div>
+      <div class="comment-input-container">
+        <textarea class="comment-input" placeholder="Share your thoughts on this post..." rows="3" maxlength="500"
+          [(ngModel)]="newCommentText[post.post?.id]" #commentTextarea>
+        </textarea>
+        <div class="comment-input-footer">
+          <div class="comment-char-count">
+            {{ (post.post?.id && newCommentText[post.post.id] && newCommentText[post.post.id].length) || 0 }}/500
+          </div>
+          <div class="comment-actions">
+            <button class="comment-cancel-btn" (click)="clearComment(post.post.id)"
+              *ngIf="post.post?.id && newCommentText[post.post.id] && newCommentText[post.post.id].length > 0">
+              Cancel
+            </button>
+            <button class="comment-submit-btn" (click)="submitComment(post.post.id)"
+              [disabled]="!post.post?.id || !(newCommentText[post.post.id] && newCommentText[post.post.id].trim()) || submittingComment[post.post.id]">
+              <span *ngIf="post.post?.id && submittingComment[post.post.id]">Posting...</span>
+              <span *ngIf="!post.post?.id || !submittingComment[post.post.id]">Post Comment</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comments List -->
+  <div *ngIf="getActiveCommentsCount(post.comments) > 0">
+    <div class="comments-header">
+      <h4>Comments ({{ getActiveCommentsCount(post.comments) }})</h4>
+    </div>
+    <div class="comments-list">
+      <div *ngFor="let comment of post.comments">
+        <div class="comment-item" *ngIf="comment.active">
+          <div class="comment-header">
+            <div class="comment-user-info">
+              <span class="comment-author">{{ (comment.user && comment.user.username) || 'Anonymous' }}</span>
+              <span class="comment-email">@{{ (comment.user && comment.user.id) || 'unknown' }}</span>
+            </div>
+
+            <!-- Comment Actions Menu -->
+            <div class="comment-actions-wrapper">
+              <button class="comment-actions-btn"
+                (click)="toggleCommentOptions(comment); $event.stopPropagation()">⋯</button>
+              <div class="comment-options-bubble" [class.show]="comment.showOptions">
+                <button (click)="shareComment(comment)">🔗 Share</button>
+                <button *ngIf="comment.user && comment.user.id === getCurrentUserId()" (click)="editComment(comment)">✏️ Edit</button>
+                <button *ngIf="comment.user && comment.user.id === getCurrentUserId()" (click)="deleteComment(comment)">🗑️ Delete</button>
+              </div>
+            </div>
+          </div>
+          <div class="comment-content">
+            <!-- Edit mode for comment content -->
+            <div *ngIf="isEditingComment(comment.id)" class="comment-edit-mode">
+              <div class="edit-input-container">
+                <textarea
+                  class="comment-edit-input"
+                  [(ngModel)]="editCommentContent"
+                  rows="3"
+                  maxlength="500"
+                  placeholder="Edit your comment...">
+                </textarea>
+                <div class="edit-char-count">{{ editCommentContent.length }}/500</div>
+              </div>
+              <div class="edit-actions">
+                <button class="edit-cancel-btn" (click)="cancelCommentEdit()" [disabled]="submittingCommentEdit">
+                  Cancel
+                </button>
+                <button class="edit-save-btn" (click)="saveCommentEdit(comment)"
+                        [disabled]="!editCommentContent.trim() || submittingCommentEdit">
+                  <span *ngIf="submittingCommentEdit">Saving...</span>
+                  <span *ngIf="!submittingCommentEdit">Save Changes</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Display mode for comment content -->
+            <div *ngIf="!isEditingComment(comment.id)">
+              {{ comment.content }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Comments Message -->
+  <div *ngIf="getActiveCommentsCount(post.comments) === 0" class="no-comments-message">
+    <div class="no-comments-icon">💭</div>
+    <p>Be the first to comment on this post!</p>
+  </div>
+
+</div>

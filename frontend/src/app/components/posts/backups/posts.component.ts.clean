@@ -1,91 +1,16 @@
-/**
- * ==============================================================================
- * POSTS COMPONENT
- * ==============================================================================
- *
- * A comprehensive component for displaying and managing social media posts.
- *
- * FEATURES:
- * --------
- * • Post Display: Renders posts with user information, content, and metadata
- * • Interactive Actions: Like/unlike, edit, delete, share functionality
- * • Comment Management: Toggle comment visibility, add comments
- * • Real-time Updates: Live like counts and comment updates
- * • Smooth Animations: Entrance/exit animations with intersection observers
- * • Responsive Design: Optimized for various screen sizes
- * • Performance Optimized: Debounced scroll handlers, pre-bound callbacks
- *
- * ANIMATION SYSTEM:
- * ----------------
- * • Entrance Animations: Slide-in effects based on viewport position
- * • Exit Animations: Alternating left/right/bottom flyout effects
- * • Intersection Observers: Efficient scroll-based animation triggers
- * • State Management: Prevents animation conflicts with locking mechanism
- *
- * ARCHITECTURE:
- * ------------
- * • Separation of Concerns: Clear method grouping by functionality
- * • Performance First: NgZone optimization, pre-bound callbacks
- * • Memory Safe: Proper cleanup of observers and event listeners
- * • Type Safe: Full TypeScript typing with proper interfaces
- *
- * @author Eric Mphande
- * @version 2.0.0
- * @since 2024
- */
-
-// ==============================================================================
-// IMPORTS
-// ==============================================================================
-
-// Angular Core Imports
-import {
-  Component,
-  OnInit,
-  AfterViewInit,
-  OnDestroy,
-  HostListener,
-  ViewChildren,
-  QueryList,
-  ElementRef,
-  NgZone
-} from '@angular/core';
-
-// Angular Animations
-import { trigger, style, transition, animate } from '@angular/animations';
-
-// RxJS
+import { Injector, TemplateRef, Component, OnInit, AfterViewInit, HostListener, ViewChildren, QueryList, ViewChild, ElementRef, OnDestroy, NgZone } from '@angular/core';
+import { PostService } from '../../services/post.service';
+import { PostDTO, PostWithOptions } from '../../models/post-dto';
+import { trigger, state, style, transition, animate } from '@angular/animations';
+import { Like } from 'src/app/models/like';
+import { LikeService } from 'src/app/services/like.service';
 import { Subscription } from 'rxjs';
 
-// Services
-import { PostService } from '../../services/post.service';
-import { LikeService } from 'src/app/services/like.service';
-
-// Models
-import { PostDTO } from '../../models/post-dto';
-import { Like } from 'src/app/models/like';
-
-// ==============================================================================
-// COMPONENT DEFINITION
-// ==============================================================================
-
-/**
- * PostsComponent - Displays and manages a list of posts with interactive features
- *
- * Features:
- * - Post loading and display with animations
- * - Like/unlike functionality
- * - Comment expansion/collapse
- * - Post editing and deletion
- * - Responsive animations with intersection observers
- * - Real-time UI updates
- */
 @Component({
   selector: 'app-posts',
   templateUrl: './posts.component.html',
   styleUrls: ['./posts.component.css'],
   animations: [
-    // Dropdown animation for post options menu
     trigger('dropdownAnimation', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(-10px)' }),
@@ -100,129 +25,54 @@ import { Like } from 'src/app/models/like';
 
 export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  // ==============================================================================
-  // CORE DATA PROPERTIES
-  // ==============================================================================
+  // ==========================================
+  // COMPONENT STATE PROPERTIES
+  // ==========================================
 
-  /** Array of post data with additional UI state */
+  // Core post data and UI state
   postDTO: PostDTO[] = [];
-
-  /** Loading state indicator */
   loading = false;
-
-  /** Error message if loading fails */
   error: string | null = null;
 
-  // ==============================================================================
-  // SUBSCRIPTIONS
-  // ==============================================================================
-
-  /** Subscription to new post events from service */
+  // Subscription to new post events
   private newPostSubscription: Subscription | null = null;
 
-  // ==============================================================================
-  // DOM REFERENCES AND OBSERVERS
-  // ==============================================================================
-
-  /** References to post card elements in the DOM */
+  // DOM references and animation observers
   @ViewChildren('postCard') postCards!: QueryList<ElementRef>;
-
-  /** References to post action elements */
-  @ViewChildren('postActions') postActionsList!: QueryList<ElementRef>;
-
-  /** Intersection observer for entrance animations */
   private intersectionObserver!: IntersectionObserver | null;
-
-  /** Intersection observer for exit animations */
   private flyoutObserver!: IntersectionObserver | null;
-
-  /** Current viewport height for animation calculations */
   private viewportHeight = (typeof window !== 'undefined') ? window.innerHeight : 0;
-
-  /** Set of elements currently being observed */
   private observedSet = new WeakSet<Element>();
-
-  /** Set of elements being observed for flyout animations */
   private flyoutObservedSet = new WeakSet<Element>();
 
-  // ==============================================================================
-  // ANIMATION STATE MANAGEMENT
-  // ==============================================================================
-
-  /**
-   * WeakMap storing animation states for each post card element
-   * Tracks whether animations are locked and current state
-   */
+  // Animation state tracking
   private animationStates = new WeakMap<Element, {
     locked: boolean;
     state: 'initial' | 'entering' | 'loaded' | 'exiting';
     pendingDirection?: 'left' | 'right' | 'bottom';
   }>();
 
-  // ==============================================================================
-  // CONFIGURATION CONSTANTS
-  // ==============================================================================
-
-  /** Whether scroll-based recheck is enabled */
+  // Configuration properties
   private scrollRecheckEnabled: boolean = true;
-
-  /** Delay for scroll recheck debouncing (ms) */
   private readonly SCROLL_RECHECK_DELAY = 200;
-
-  /** Timeout for animation completion fallback (ms) */
   private readonly ANIMATION_TIMEOUT = 2000;
-
-  /** Timeout ID for scroll recheck */
   private scrollRecheckTimeout: number | null = null;
 
-  // ==============================================================================
-  // PRE-BOUND CALLBACKS (Performance Optimization)
-  // ==============================================================================
-
-  /** Pre-bound intersection observer callback */
+  // Pre-bound callbacks to avoid closure re-creation
   private boundHandleIntersection: IntersectionObserverCallback;
-
-  /** Pre-bound flyout observer callback */
   private boundHandleFlyout: IntersectionObserverCallback;
-
-  /** Pre-bound scroll recheck callback */
   private boundScrollRecheck: () => void;
 
-  // ==============================================================================
-  // VIEWPORT MANAGEMENT
-  // ==============================================================================
-
-  /** Cached viewport height for performance */
+  // Viewport height caching for performance
   private cachedViewportHeight: number = 0;
-
-  /** Updates cached viewport height on resize */
   private readonly updateViewportHeight = () => {
     this.cachedViewportHeight = window.innerHeight;
   };
 
-  // ==============================================================================
-  // POST EDITING STATE
-  // ==============================================================================
-
-  /** ID of the post currently being edited */
+  // Post edit state
   editingPostId: number | null = null;
-
-  /** Content of the post being edited */
   editPostContent: string = '';
-
-  /** Whether a post edit is currently being submitted */
   submittingPostEdit: boolean = false;
-
-  // ==============================================================================
-  // COMMENT MANAGEMENT
-  // ==============================================================================
-
-  /** Set of post IDs with expanded comments */
-  expandedComments: Set<number> = new Set();
-
-  // ==============================================================================
-  // CONSTRUCTOR
-  // ==============================================================================
 
   constructor(
     private likeService: LikeService,
@@ -241,18 +91,11 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     // });
   }
 
-  // ==============================================================================
-  // ANGULAR LIFECYCLE METHODS
-  // ==============================================================================
+  // ==========================================
+  // LIFECYCLE METHODS
+  // ==========================================
 
-  /**
-   * Component initialization
-   * Sets up initial data loading and event listeners
-   */
   ngOnInit() {
-    console.log('PostsComponent: ngOnInit() called');
-
-    // Load initial posts data
     this.loadPosts();
 
     // Set up throttled viewport height caching for smooth animations
@@ -268,19 +111,11 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /**
-   * After view initialization
-   * Sets up intersection observers for animations
-   */
   ngAfterViewInit() {
     this.setupIntersectionObserver();
     this.setupThrottledObservation();
   }
 
-  /**
-   * Component cleanup
-   * Removes event listeners, disconnects observers, and cleans up subscriptions
-   */
   ngOnDestroy() {
     // Clean up observers
     if (this.intersectionObserver) {
@@ -307,14 +142,12 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // ==============================================================================
-  // COMMENT FUNCTIONALITY
-  // ==============================================================================
+  // ==========================================
+  // COMMENT FUNCTIONALITY - DELEGATED TO COMMENTS COMPONENT
+  // ==========================================
 
-  /**
-   * Toggles comment expansion for a specific post
-   * @param postId - The ID of the post to toggle comments for
-   */
+  expandedComments: Set<number> = new Set();
+
   toggleComments(postId: number) {
     if (this.expandedComments.has(postId)) {
       this.expandedComments.delete(postId);
@@ -323,55 +156,29 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /**
-   * Checks if comments are expanded for a specific post
-   * @param postId - The ID of the post to check
-   * @returns Whether comments are expanded
-   */
   isCommentsExpanded(postId: number): boolean {
     return this.expandedComments.has(postId);
   }
 
-  /**
-   * Handles comment added events from the comments component
-   * @param comment - The newly added comment
-   */
   onCommentAdded(comment: any) {
     // Handle comment added event if needed
     console.log('Comment added:', comment);
   }
 
-  /**
-   * Counts the number of active comments for a post
-   * @param comments - Array of comments to count
-   * @returns Number of active comments
-   */
-  getActiveCommentsCount(comments: any[]): number {
-    if (!comments) return 0;
-    return comments.filter(comment => comment.active).length;
-  }
-
-  // ==============================================================================
+  // ==========================================
   // DATA LOADING AND CORE FUNCTIONALITY
-  // ==============================================================================
+  // ==========================================
 
-  /**
-   * Loads all posts from the service
-   * Sets up staggered animations after successful load
-   */
   loadPosts(): void {
-    console.log('PostsComponent: loadPosts() called');
     this.loading = true;
     this.error = null;
 
     this.postService.getAllPosts().subscribe({
       next: (posts) => {
-        console.log('PostsComponent: Received posts:', posts);
         this.postDTO = posts.map(post => ({
           ...post,
           showOptions: false
         }));
-        console.log('PostsComponent: Mapped postDTO:', this.postDTO);
         this.loading = false;
 
         // Set up staggered card observation after DOM updates
@@ -385,14 +192,12 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  // ==============================================================================
-  // POST ACTIONS AND OPTIONS MENU
-  // ==============================================================================
+  // ==========================================
+  // POST ACTIONS
+  // ==========================================
 
-  /**
-   * Handles clicks outside post options to close menus
-   * @param event - The click event
-   */
+  @ViewChildren('postActions') postActionsList!: QueryList<ElementRef>;
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event) {
     const target = event.target as HTMLElement;
@@ -403,19 +208,12 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /**
-   * Closes all open post option menus
-   */
   closeAllOptions() {
     this.postDTO.forEach(post => {
       post.showOptions = false;
     });
   }
 
-  /**
-   * Toggles the options menu for a specific post
-   * @param post - The post to toggle options for
-   */
   togglePostOptions(post: PostDTO) {
     // Close all other options first
     this.postDTO.forEach(p => {
@@ -426,23 +224,11 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     post.showOptions = !post.showOptions;
   }
 
-  /**
-   * Opens share options for a post
-   * @param post - The post to share
-   */
   openShareOptions(post: any) {
     console.log('Share', post);
     post.showOptions = false;
   }
 
-  // ==============================================================================
-  // POST EDITING FUNCTIONALITY
-  // ==============================================================================
-
-  /**
-   * Enters edit mode for a specific post
-   * @param post - The post to edit
-   */
   editPost(post: PostDTO) {
     if (post.post) {
       this.editingPostId = post.post.id;
@@ -451,28 +237,16 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /**
-   * Checks if a post is currently being edited
-   * @param postId - The ID of the post to check
-   * @returns Whether the post is being edited
-   */
   isEditingPost(postId: number): boolean {
     return this.editingPostId === postId;
   }
 
-  /**
-   * Cancels the current post edit operation
-   */
   cancelPostEdit() {
     this.editingPostId = null;
     this.editPostContent = '';
     this.submittingPostEdit = false;
   }
 
-  /**
-   * Saves the edited post content
-   * @param post - The post being edited
-   */
   savePostEdit(post: PostDTO) {
     if (!this.editPostContent.trim() || !post.post) {
       return;
@@ -488,7 +262,7 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (updatedPost) => {
         if (post.post) {
           post.post.content = this.editPostContent.trim();
-          // Note: updatedAt is handled by the backend
+          post.post.updatedAt = updatedPost.updatedAt || new Date().toISOString();
         }
         this.cancelPostEdit();
         console.log('Post updated successfully');
@@ -500,12 +274,8 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  /**
-   * Deletes a post after confirmation
-   * @param post - The post to delete
-   */
   deletePost(post: PostDTO): void {
-    if (!post.post || !post.post.id) return;
+    if (!post.post?.id) return;
 
     const postId = post.post.id;
     console.log('Attempting to delete post with ID:', postId);
@@ -514,7 +284,7 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (response) => {
         console.log('Post deleted successfully:', response);
         // Remove the post from the local array
-        this.postDTO = this.postDTO.filter(p => p.post && p.post.id !== postId);
+        this.postDTO = this.postDTO.filter(p => p.post?.id !== postId);
         post.showOptions = false;
       },
       error: (err) => {
@@ -524,31 +294,18 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  // ==============================================================================
+  // ==========================================
   // LIKE FUNCTIONALITY
-  // ==============================================================================
+  // ==========================================
 
-  /**
-   * Gets the current user ID (should be replaced with actual auth service)
-   * @returns The current user's ID
-   */
   private getCurrentUserId(): number {
     return 1; // This should come from your authentication service
   }
 
-  /**
-   * Gets the current username (should be replaced with actual auth service)
-   * @returns The current user's username
-   */
   private getCurrentUsername(): string {
     return "testuser"; // This should come from your authentication service
   }
 
-  /**
-   * Checks if the current user has liked a specific post
-   * @param post - The post to check
-   * @returns Whether the current user has liked the post
-   */
   isPostLikedByCurrentUser(post: PostDTO): boolean {
     const currentUserId = this.getCurrentUserId();
     if (!post.likes) {
@@ -559,12 +316,8 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  /**
-   * Toggles like status for a post (like/unlike)
-   * @param post - The post to toggle like for
-   */
   toggleLike(post: PostDTO): void {
-    if (!post.post || !post.post.id) return;
+    if (!post.post?.id) return;
 
     const postId = post.post.id;
     const currentUserId = this.getCurrentUserId();
@@ -572,8 +325,8 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (isCurrentlyLiked) {
       // Unlike the post
-      const likeToRemove = post.likes && post.likes.find(like => like.user && like.user.id === currentUserId);
-      if (likeToRemove && likeToRemove.id) {
+      const likeToRemove = post.likes?.find(like => like.user?.id === currentUserId);
+      if (likeToRemove?.id) {
         this.likeService.deleteLike(likeToRemove.id).subscribe({
           next: () => {
             // Remove the like from the local data
@@ -589,10 +342,8 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     } else {
       // Like the post
-      const targetType: 'post' | 'comment' = 'post';
       const likeData = {
-        targetId: postId,
-        targetType: targetType,
+        postId: postId,
         userId: currentUserId
       };
 
@@ -612,14 +363,10 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // ==============================================================================
+  // ==========================================
   // UI UTILITY METHODS
-  // ==============================================================================
+  // ==========================================
 
-  /**
-   * Gets the current date formatted for display
-   * @returns Formatted current date string
-   */
   getCurrentDate(): string {
     const date = new Date();
     const formatter = new Intl.DateTimeFormat('en-US', {
@@ -630,14 +377,10 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     return formatter.format(date);
   }
 
-  // ==============================================================================
-  // ANIMATION SYSTEM - INTERSECTION OBSERVERS
-  // ==============================================================================
+  // ==========================================
+  // ANIMATION METHODS (keeping existing implementation)
+  // ==========================================
 
-  /**
-   * Sets up the main intersection observer for entrance animations
-   * Configures thresholds and root margin for optimal animation triggering
-   */
   private setupIntersectionObserver() {
     const rootMargin = typeof window !== 'undefined' ?
       `${Math.round(window.innerHeight * 0.2)}px` : '100px';
@@ -652,10 +395,6 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
-  /**
-   * Handles intersection observer callbacks for entrance animations
-   * @param entries - Intersection observer entries
-   */
   private handleIntersection(entries: IntersectionObserverEntry[]): void {
     requestAnimationFrame(() => {
       entries.forEach(entry => {
@@ -669,12 +408,6 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  /**
-   * Manages state changes for post cards based on intersection
-   * @param element - The post card element
-   * @param isIntersecting - Whether the element is intersecting
-   * @param ratio - The intersection ratio
-   */
   private handleCardStateChange(element: HTMLElement, isIntersecting: boolean, ratio: number): void {
     const state = this.animationStates.get(element);
     if (!state) return;
@@ -691,15 +424,6 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // ==============================================================================
-  // ANIMATION STATE HANDLERS
-  // ==============================================================================
-
-  /**
-   * Handles the entering animation state for a post card
-   * Determines animation type based on viewport position
-   * @param element - The post card element
-   */
   private handleCardEntering(element: HTMLElement): void {
     const rect = element.getBoundingClientRect();
     const isInBottomHalf = rect.top > this.cachedViewportHeight * 0.6;
@@ -711,10 +435,6 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /**
-   * Handles the loaded state for a post card
-   * @param element - The post card element
-   */
   private handleCardLoaded(element: HTMLElement): void {
     const state = this.animationStates.get(element);
     if (state) {
@@ -726,10 +446,6 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.addToFlyoutObserver(element);
   }
 
-  /**
-   * Handles the exiting state for a post card
-   * @param element - The post card element
-   */
   private handleCardExiting(element: HTMLElement): void {
     if (this.flyoutObservedSet.has(element)) {
       const direction = this.getFlyoutDirection(element);
@@ -737,16 +453,6 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // ==============================================================================
-  // ANIMATION APPLICATION METHODS
-  // ==============================================================================
-
-  /**
-   * Applies an animation class to an element with optional completion callback
-   * @param element - The element to animate
-   * @param animationClass - The CSS class to apply
-   * @param onComplete - Optional callback when animation completes
-   */
   private applyAnimation(
     element: HTMLElement,
     animationClass: string,
@@ -768,11 +474,6 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /**
-   * Determines the flyout direction for exit animations
-   * @param element - The post card element
-   * @returns The direction for the flyout animation
-   */
   private getFlyoutDirection(element: HTMLElement): 'left' | 'right' | 'bottom' {
     const rect = element.getBoundingClientRect();
     const index = parseInt(element.getAttribute('data-index') || '0');
@@ -786,10 +487,6 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     return (index % 2 === 0) ? 'left' : 'right';
   }
 
-  /**
-   * Adds an element to the flyout observer for exit animations
-   * @param element - The element to observe
-   */
   private addToFlyoutObserver(element: HTMLElement): void {
     this.ngZone.runOutsideAngular(() => {
       if (this.flyoutObserver && !this.flyoutObservedSet.has(element)) {
@@ -799,44 +496,20 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  /**
-   * Applies standard entrance animation
-   * @param element - The element to animate
-   * @param onComplete - Optional completion callback
-   */
   private applyStandardEntrance(element: HTMLElement, onComplete?: () => void): void {
     this.applyAnimation(element, 'animate-in', onComplete);
   }
 
-  /**
-   * Applies bottom entrance animation
-   * @param element - The element to animate
-   * @param onComplete - Optional completion callback
-   */
   private applyBottomEntrance(element: HTMLElement, onComplete?: () => void): void {
     this.applyAnimation(element, 'animate-in-from-bottom', onComplete);
   }
 
-  /**
-   * Applies flyout exit animation
-   * @param element - The element to animate
-   * @param direction - The direction for the flyout
-   */
   private applyFlyoutAnimation(element: HTMLElement, direction: 'left' | 'right' | 'bottom'): void {
     const animationClass = direction === 'bottom' ? 'animate-out-bottom' :
                           direction === 'left' ? 'animate-out-left' : 'animate-out-right';
     this.applyAnimation(element, animationClass);
   }
 
-  // ==============================================================================
-  // ANIMATION SUPPORT METHODS
-  // ==============================================================================
-
-  /**
-   * Sets up transition end listener with fallback timeout
-   * @param element - The element to listen to
-   * @param callback - Callback to execute when transition ends
-   */
   private setupTransitionEndListener(element: HTMLElement, callback: () => void): void {
     let completed = false;
 
@@ -856,9 +529,6 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => cleanup(), this.ANIMATION_TIMEOUT);
   }
 
-  /**
-   * Sets up the flyout observer for exit animations
-   */
   private setupFlyoutObserver(): void {
     const rootMargin = typeof window !== 'undefined' ?
       `${Math.round(window.innerHeight * -0.3)}px` : '-150px';
@@ -873,10 +543,6 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
-  /**
-   * Handles flyout observer callbacks for exit animations
-   * @param entries - Intersection observer entries
-   */
   private handleFlyout(entries: IntersectionObserverEntry[]): void {
     requestAnimationFrame(() => {
       entries.forEach(entry => {
@@ -887,18 +553,11 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  /**
-   * Handles flyout exit for an element
-   * @param element - The element exiting
-   */
   private handleFlyoutExit(element: HTMLElement): void {
     const direction = this.getFlyoutDirection(element);
     this.applyFlyoutAnimation(element, direction);
   }
 
-  /**
-   * Observes post cards with staggered timing for smoother animations
-   */
   private observePostCardsWithStagger(): void {
     if (!this.intersectionObserver) return;
 
@@ -925,22 +584,11 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  /**
-   * Sets up throttled observation for animations
-   */
   private setupThrottledObservation(): void {
     // Set up flyout observer
     this.setupFlyoutObserver();
   }
 
-  // ==============================================================================
-  // ANIMATION CONFIGURATION METHODS
-  // ==============================================================================
-
-  /**
-   * Toggles scroll-based recheck functionality
-   * @param enabled - Whether to enable scroll recheck
-   */
   public toggleScrollRecheck(enabled: boolean): void {
     this.scrollRecheckEnabled = enabled;
 
@@ -953,30 +601,17 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /**
-   * Performs scroll-based recheck for animation consistency
-   */
   private performScrollRecheck(): void {
     // Implementation for scroll recheck if needed
   }
 
-  // ==============================================================================
-  // UTILITY METHODS
-  // ==============================================================================
-
-  /**
-   * Creates a debounced version of a function
-   * @param func - The function to debounce
-   * @param delay - The delay in milliseconds
-   * @returns The debounced function
-   */
-  private debounce(
-    func: (...args: any[]) => any,
+  private debounce<T extends (...args: any[]) => any>(
+    func: T,
     delay: number
-  ): (...args: any[]) => void {
+  ): (...args: Parameters<T>) => void {
     let timeoutId: number | null = null;
 
-    return (...args: any[]) => {
+    return (...args: Parameters<T>) => {
       if (timeoutId !== null) {
         clearTimeout(timeoutId);
       }
